@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="jQuery.RSS : An easy-to-use rss plugin for jquery with templating." />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>jQuery.RSS</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/dawanda/jquery-rss">View on GitHub</a>
+
+          <h1 id="project_title">jQuery.RSS</h1>
+          <h2 id="project_tagline">An easy-to-use rss plugin for jquery with templating.</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/dawanda/jquery-rss/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/dawanda/jquery-rss/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h2>jquery.rss</h2>
+
+<p>This plugin can be used to read a RSS feed (via the Google Feed API) and transform it into a custom piece of HTML.</p>
+
+<h2>Setup</h2>
+
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;title&gt;jquery.rss example&lt;/title&gt;
+    &lt;script src="lib/jquery-1.6.4.min.js"&gt;&lt;/script&gt;
+    &lt;script src="src/jquery.rss.js"&gt;&lt;/script&gt;
+    &lt;script&gt;
+      jQuery(function($) {
+        $("#rss-feeds").rss("http://feeds.feedburner.com/premiumpixels")
+      })
+    &lt;/script&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;div id="rss-feeds"&gt;&lt;/div&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<h2>Options</h2>
+
+<pre><code>$("#rss-feeds").rss(
+  "http://feeds.feedburner.com/premiumpixels",
+  {
+    // how many entries do you want?
+    // default: 4
+    limit: 10,
+
+    // will request the API via https
+    // default: false
+    ssl: true,
+
+    // outer template for the html transformation
+    // default: "&lt;ul&gt;{entries}&lt;/ul&gt;"
+    layoutTemplate: '&lt;div class='feed-container'&gt;{entries}&lt;/div&gt;',
+
+    // inner template for each entry
+    // default: '&lt;li&gt;&lt;a href="{url}"&gt;[{author}@{date}] {title}&lt;/a&gt;&lt;br/&gt;{shortBodyPlain}&lt;/li&gt;'
+    entryTemplate: '&lt;p&gt;{title}&lt;/p&gt;',
+
+    // additional token definition for in-template-usage
+    // default: {}
+    tokens: {
+      foo: 'bar',
+      bar: function(entry, tokens) { return entry.title }
+    },
+
+    // output mode of google feed loader request
+    // default: 'json'
+    outputMode: 'json_xml'
+  },
+
+  // User callback function called after feeds are successfully loaded.
+  function callback() {}
+)
+</code></pre>
+
+<h2>Templating</h2>
+
+<p>As seen in the options, you can specify a template in order to transform the json objects into HTML.
+The basic format of that template is:</p>
+
+<pre><code>"&lt;outer-html&gt;{entry}&lt;entry-html&gt;&lt;/entry-html&gt;{/entry}&lt;/outer-html&gt;"
+</code></pre>
+
+<p>Using such a format, you can specify the structure of the entry-wise HTML, as well as the surrounding one.
+If you specify a template, which has no "entry"-tokens, the templates gets treated as entry-wise template without
+surrounding stuff.</p>
+
+<p>So, let's say you have specified a limit of 2. Using the upper pseudo html. This will result in the following:</p>
+
+<pre><code>&lt;outer-html&gt;
+  &lt;entry-html&gt;&lt;/entry-html&gt;
+  &lt;entry-html&gt;&lt;/entry-html&gt;
+&lt;/outer-html&gt;
+</code></pre>
+
+<p>In order to get values for each entry, you can do something like this:</p>
+
+<pre><code>"&lt;div class='rss-feeds'&gt;&lt;ul&gt;{entry}&lt;li&gt;{title}&lt;/li&gt;{/entry}&lt;/ul&gt;&lt;/div&gt;"
+</code></pre>
+
+<p>The {title} token will get replaced by the actual title. So you will get this:</p>
+
+<p></p> 
+    <ul>
+<li>Title 1</li>
+      <li>Title 2</li>
+    </ul> 
+
+<p>There are some predefined tokens:</p>
+
+<ul>
+<li>url: the url to the post</li>
+<li>author: the author of the post</li>
+<li>date: the publishing date</li>
+<li>title: the title of the post</li>
+<li>body: the complete content of the post</li>
+<li>shortBody: the shortened content of the post</li>
+<li>bodyPlain: the complete content of the post without html</li>
+<li>shortBodyPlain: the shortened content of the post without html</li>
+<li>teaserImage: the first image in the post's body</li>
+<li>teaserImageUrl: the url of the first image in the post's body</li>
+<li>index: the index of the current entry</li>
+<li>totalEntries: the total count of the entries</li>
+</ul><p>You can also define custom tokens using the <code>tokens</code> option:</p>
+
+<pre><code>$('#foo').rss(url, {
+  template: "{dynamic}, {static}, {re-use}",
+  tokens: {
+    dynamic: function(entry, tokens){ return "dynamic-stuff: " + entry.title },
+    "re-use": function(entry, tokens){ return encodeURIComponent(tokens.teaserImageUrl) },
+    static: "static"
+  }
+})
+</code></pre>
+
+<p>Please make sure to NOT define infinite loops. The following example is really BAD:</p>
+
+<pre><code>$('#foo').rss(url, {
+  template: "{loop}",
+  tokens: {
+    whoops: function(entry, tokens) { return tokens.loop() }
+    loop: function(entry, tokens) { return tokens.whoops() }
+  }
+})
+</code></pre>
+
+<h2>Filtering</h2>
+
+<p>The plugin also allows you to filter specific entries in order to only print them:</p>
+
+<pre><code>$("#foo").rss(url, {
+  limit: 100,
+  filterLimit: 10,
+  filter: function(entry, tokens) {
+    return tokens.title.indexOf('my filter') &gt; -1
+  }
+})
+</code></pre>
+
+<p>This will request 100 entries via the Feed API and renders the first 10 matching entries.</p>
+
+<h2>Testing</h2>
+
+<p>The test suite uses Mocha in the browser. Furthermore we are running the test suite with PhantomJS.
+In order to run the tests, you need to have the phantomjs binary (<a href="http://code.google.com/p/phantomjs/downloads/list">http://code.google.com/p/phantomjs/downloads/list</a>)
+in the PATH and run <code>npm test</code> in the root folder.</p>
+
+<h2>Minified version</h2>
+
+<p>The source is minified via [<a href="http://jscompress.com">http://jscompress.com</a>].</p>
+
+<h2>Authors/Contributors</h2>
+
+<ul>
+<li>DaWanda GmbH (<a href="http://dawanda.com">Website</a>)</li>
+<li>Sascha Depold (<a href="http://twitter.com/sdepold">Twitter</a> | <a href="http://github.com/sdepold">Github</a> | <a href="http://depold.com">Website</a>)</li>
+<li>Steffen Schröder  (<a href="http://twitter.com/ChaosSteffen">Twitter</a> | <a href="http://github.com/ChaosSteffen">Github</a> | <a href="http://schroeder-blog.de">Website</a>)</li>
+</ul>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">jQuery.RSS maintained by <a href="https://github.com/dawanda">dawanda</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
